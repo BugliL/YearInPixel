@@ -53,9 +53,25 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
             icon: const Icon(Icons.bar_chart),
             onPressed: () {},
           ),
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_horiz),
-            onPressed: () {},
+            onSelected: (value) {
+              if (value == 'delete') {
+                _showDeleteConfirmation();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Delete Log', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -257,6 +273,38 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
   void _showNoteDialog(DateTime date, DayEntry entry) {
     _handleDayTap(date, entry);
+  }
+
+  Future<void> _showDeleteConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Log'),
+          content: Text(
+            'Are you sure you want to delete "${_log.name}"? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<LogProvider>().deleteLog(_log.id);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   List<int> _getDaysInMonth(int year) {
