@@ -159,13 +159,14 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           // Day cells for each month
           ...List.generate(12, (monthIndex) {
             if (day > daysInMonth[monthIndex]) {
-              return const Expanded(child: SizedBox(height: 12));
+              return const SizedBox(width: 18, height: 18);
             }
 
             final date = DateTime(year, monthIndex + 1, day);
             final entry = _log.getEntryForDate(date);
 
-            return Expanded(
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 1),
               child: GestureDetector(
                 onTap: () => _handleDayTap(date, entry),
                 onLongPress: () {
@@ -174,8 +175,8 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                   }
                 },
                 child: Container(
-                  height: 40,
-                  margin: const EdgeInsets.all(1),
+                  width: 18,
+                  height: 18,
                   decoration: BoxDecoration(
                     color: entry != null
                         ? Color(_log.categories[entry.categoryIndex].color)
@@ -193,7 +194,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
   Widget _buildColorLegend() {
     return Container(
-      width: 100,
+      width: 80,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,8 +209,8 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                 child: Column(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 20,
+                      height: 20,
                       decoration: BoxDecoration(
                         color: Color(category.color),
                         borderRadius: BorderRadius.circular(8),
