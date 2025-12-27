@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/log.dart';
 import '../models/log_category.dart';
 import '../providers/log_provider.dart';
+import '../services/log_templates.dart';
 
 class LogEditorScreen extends StatefulWidget {
   final Log? log;
@@ -17,6 +18,7 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emojiController;
   final List<LogCategory> _categories = [];
+  String? _selectedTemplateId;
 
   @override
   void initState() {
@@ -59,6 +61,66 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Template selector (only for new logs)
+            if (widget.log == null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    hint: const Text('Select a template'),
+                    value: _selectedTemplateId,
+                    items: LogTemplates.templates.map((template) {
+                      return DropdownMenuItem<String>(
+                        value: template.id,
+                        child: Row(
+                          children: [
+                            Text(template.emoji, style: const TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    template.name,
+                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                  ),
+                                  Text(
+                                    template.description,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        final template = LogTemplates.templates.firstWhere(
+                          (t) => t.id == value,
+                        );
+                        setState(() {
+                          _selectedTemplateId = value;
+                        });
+                        _loadTemplate(template);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            if (widget.log == null) const SizedBox(height: 16),
             // Name field
             TextField(
               controller: _nameController,
@@ -292,6 +354,19 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
     }
 
     Navigator.pop(context);
+  }
+
+  void _loadTemplate(LogTemplate template) {
+    setState(() {
+      _nameController.text = template.name;
+      _emojiController.text = template.emoji;
+      _categories.clear();
+      _categories.addAll(
+        template.categories
+            .map((cat) => LogCategory(label: cat.label, color: cat.color))
+            .toList(),
+      );
+    });
   }
 
   void _deleteLog() {

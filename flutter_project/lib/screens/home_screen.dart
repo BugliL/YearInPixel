@@ -82,8 +82,34 @@ class HomeScreen extends StatelessWidget {
     return Consumer<LogProvider>(
       builder: (context, provider, _) {
         if (provider.logs.isEmpty) {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 64,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No logs yet',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tap the + button to create your first log',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
