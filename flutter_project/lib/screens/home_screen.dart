@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               const Text(
-                '',
+                'Year in Pixels',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,

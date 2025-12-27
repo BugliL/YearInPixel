@@ -54,7 +54,7 @@ The export file is a JSON file with the following structure:
 2. Tap "Settings"
 3. Under "Data Management", tap "Export Logs"
 4. Choose where to save or share the file
-5. The file will be named `_export_[timestamp].json`
+5. The file will be named `yip_export_[timestamp].json`
 
 ### Importing Logs
 1. Open the app and tap the menu icon (three dots) in the top right

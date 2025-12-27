@@ -20,7 +20,7 @@ class ImportExportService {
 
       // Convert to JSON string with pretty formatting
       final jsonString = const JsonEncoder.withIndent('  ').convert(exportData);
-      final fileName = '_export_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName = 'yip_export_${DateTime.now().millisecondsSinceEpoch}.json';
 
       if (kIsWeb) {
         // Web platform: trigger download

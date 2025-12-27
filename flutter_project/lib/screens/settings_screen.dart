@@ -67,7 +67,7 @@ class SettingsScreen extends StatelessWidget {
                 _buildInfoTile(
                   context,
                   title: 'App Name',
-                  value: 'Pixa - Year in Pixels',
+                  value: 'Year in Pixels',
                 ),
               ],
             ),
