@@ -44,34 +44,6 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                width: 24,
-                height: 24,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: Colors.white,
-                  ),
-                  child: const Icon(Icons.grid_4x4, size: 16),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Year in Pixels',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 24),
           Consumer<LogProvider>(
             builder: (context, provider, _) {
@@ -97,18 +69,6 @@ class HomeScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.chevron_right),
                   ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.more_horiz),
-                  ),
                 ],
               );
             },
@@ -133,7 +93,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.50,
           ),
           itemCount: provider.logs.length,
           itemBuilder: (context, index) {
@@ -177,12 +137,19 @@ class HomeScreen extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.home, color: Color(0xFF98D8C8)),
+                icon: const Icon(Icons.home),
               ),
               IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.person_outline, color: Colors.grey),
-              ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.settings),
+              )
             ],
           ),
         ),

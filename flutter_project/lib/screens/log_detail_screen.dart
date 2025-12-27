@@ -157,7 +157,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                   }
                 },
                 child: Container(
-                  height: 12,
+                  height: 40,
                   margin: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     color: entry != null
