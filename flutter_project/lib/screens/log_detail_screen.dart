@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/log.dart';
 import '../models/day_entry.dart';
+import '../models/log_category.dart';
 import '../providers/log_provider.dart';
 import '../widgets/day_entry_dialog.dart';
 
@@ -197,38 +198,39 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ..._log.categories.map((category) {
+          ..._log.categories.asMap().entries.map((entry) {
+            final index = entry.key;
+            final category = entry.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Color(category.color),
-                      borderRadius: BorderRadius.circular(8),
+              child: GestureDetector(
+                onTap: () => _editCategory(index, category),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Color(category.color),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    category.label,
-                    style: const TextStyle(fontSize: 10),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      category.label,
+                      style: const TextStyle(fontSize: 10),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             );
           }),
-          const Spacer(),
-          // Add button
           IconButton(
-            onPressed: () {
-              // Add new category
-            },
-            icon: const Icon(Icons.add_circle_outline),
+            onPressed: _addCategory,
+            icon: const Icon(Icons.add_box_sharp),
           ),
         ],
       ),
@@ -273,6 +275,258 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
   void _showNoteDialog(DateTime date, DayEntry entry) {
     _handleDayTap(date, entry);
+  }
+
+  void _addCategory() {
+    _editCategory(
+      null,
+      LogCategory(label: 'New Category', color: 0xFF9C27B0),
+    );
+  }
+
+  void _handleCategoryDeletion(int categoryIndex) async {
+    // Check if this category is being used by any entries
+    final entriesUsingCategory = _log.entries
+        .where((entry) => entry.categoryIndex == categoryIndex)
+        .toList();
+
+    if (entriesUsingCategory.isEmpty) {
+      // Safe to delete - no entries use this category
+      setState(() {
+        _log.categories.removeAt(categoryIndex);
+        // Update indices for entries with higher categoryIndex
+        for (var entry in _log.entries) {
+          if (entry.categoryIndex > categoryIndex) {
+            final updatedEntry = entry.copyWith(
+              categoryIndex: entry.categoryIndex - 1,
+            );
+            final entryIndex = _log.entries.indexOf(entry);
+            _log.entries[entryIndex] = updatedEntry;
+          }
+        }
+      });
+      context.read<LogProvider>().updateLog(_log);
+      return;
+    }
+
+    // Category is in use - show dialog with options
+    if (!mounted) return;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Category in Use'),
+        content: Text(
+          'This category is used by ${entriesUsingCategory.length} ${entriesUsingCategory.length == 1 ? "entry" : "entries"}. What would you like to do?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: const Text('Cancel'),
+          ),
+          if (_log.categories.length > 1)
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'reassign'),
+              child: const Text('Reassign to Another'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'delete_all'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete All Entries'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;    if (result == 'delete_all') {
+      setState(() {
+        // Remove all entries using this category
+        _log.entries.removeWhere((entry) => entry.categoryIndex == categoryIndex);
+        // Remove the category
+        _log.categories.removeAt(categoryIndex);
+        // Update indices for remaining entries
+        for (var entry in _log.entries) {
+          if (entry.categoryIndex > categoryIndex) {
+            final updatedEntry = entry.copyWith(
+              categoryIndex: entry.categoryIndex - 1,
+            );
+            final entryIndex = _log.entries.indexOf(entry);
+            _log.entries[entryIndex] = updatedEntry;
+          }
+        }
+      });
+      context.read<LogProvider>().updateLog(_log);
+    } else if (result == 'reassign') {
+      _showReassignDialog(categoryIndex, entriesUsingCategory);
+    }
+  }
+
+  void _showReassignDialog(int oldCategoryIndex, List<DayEntry> entries) async {
+    int? newCategoryIndex;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reassign to Category'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Choose a category to reassign ${entries.length} ${entries.length == 1 ? "entry" : "entries"}:'),
+            const SizedBox(height: 16),
+            ..._log.categories.asMap().entries.where((e) => e.key != oldCategoryIndex).map((entry) {
+              return ListTile(
+                leading: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Color(entry.value.color),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                title: Text(entry.value.label),
+                onTap: () {
+                  newCategoryIndex = entry.key;
+                  Navigator.pop(context);
+                },
+              );
+            }),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (newCategoryIndex != null) {
+      setState(() {
+        // Reassign all entries to new category
+        for (var entry in entries) {
+          final updatedEntry = entry.copyWith(categoryIndex: newCategoryIndex);
+          final entryIndex = _log.entries.indexOf(entry);
+          _log.entries[entryIndex] = updatedEntry;
+        }
+        // Remove the old category
+        _log.categories.removeAt(oldCategoryIndex);
+        // Update indices for entries with indices greater than the deleted one
+        for (int i = 0; i < _log.entries.length; i++) {
+          final entry = _log.entries[i];
+          if (entry.categoryIndex > oldCategoryIndex) {
+            _log.entries[i] = entry.copyWith(
+              categoryIndex: entry.categoryIndex - 1,
+            );
+          } else if (entry.categoryIndex == newCategoryIndex && newCategoryIndex! > oldCategoryIndex) {
+            // Adjust the new category index since we're deleting a category before it
+            _log.entries[i] = entry.copyWith(
+              categoryIndex: entry.categoryIndex - 1,
+            );
+          }
+        }
+      });
+      context.read<LogProvider>().updateLog(_log);
+    }
+  }
+
+  void _editCategory(int? index, LogCategory category) {
+    final nameController = TextEditingController(text: category.label);
+    Color selectedColor = Color(category.color);
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(index == null ? 'Add Category' : 'Edit Category'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Category Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Select Color:'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  0xFF4CAF50, // Green (5 stars)
+                  0xFF8BC34A, // Light Green (4 stars)
+                  0xFFFFEB3B, // Yellow (3 stars)
+                  0xFFFF9800, // Orange (2 stars)
+                  0xFFF44336, // Red (1 star)
+                  0xFF2196F3, // Blue
+                  0xFF9C27B0, // Purple
+                  0xFFE91E63, // Pink
+                  0xFF795548, // Brown
+                  0xFF607D8B, // Blue Grey
+                ].map((colorValue) {
+                  return GestureDetector(
+                    onTap: () {
+                      setDialogState(() {
+                        selectedColor = Color(colorValue);
+                      });
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Color(colorValue),
+                        shape: BoxShape.circle,
+                        border: selectedColor.toARGB32() == colorValue
+                            ? Border.all(color: Colors.black, width: 3)
+                            : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            if (index != null)
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _handleCategoryDeletion(index);
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newCategory = LogCategory(
+                  label: nameController.text.isEmpty 
+                      ? category.label 
+                      : nameController.text,
+                  color: selectedColor.toARGB32(),
+                );
+
+                setState(() {
+                  if (index == null) {
+                    _log.categories.add(newCategory);
+                  } else {
+                    _log.categories[index] = newCategory;
+                  }
+                });
+
+                context.read<LogProvider>().updateLog(_log);
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _showDeleteConfirmation() async {

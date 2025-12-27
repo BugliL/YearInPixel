@@ -26,7 +26,11 @@ class _DayEntryDialogState extends State<DayEntryDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedCategoryIndex = widget.existingEntry?.categoryIndex;
+    // Validate categoryIndex to prevent crash if category was deleted
+    final existingIndex = widget.existingEntry?.categoryIndex;
+    _selectedCategoryIndex = (existingIndex != null && existingIndex < widget.log.categories.length)
+        ? existingIndex
+        : null;
     _noteController = TextEditingController(text: widget.existingEntry?.note ?? '');
   }
 
@@ -100,7 +104,7 @@ class _DayEntryDialogState extends State<DayEntryDialog> {
             ),
             const SizedBox(height: 24),
             // Color/category selection
-            if (_selectedCategoryIndex != null)
+            if (_selectedCategoryIndex != null && _selectedCategoryIndex! < widget.log.categories.length)
               Container(
                 width: 80,
                 height: 80,

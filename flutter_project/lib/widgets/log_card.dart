@@ -101,7 +101,7 @@ class LogCard extends StatelessWidget {
 
                     final date = DateTime(year, monthIndex + 1, day);
                     final entry = log.getEntryForDate(date);
-                    final color = entry != null
+                    final color = entry != null && entry.categoryIndex < log.categories.length
                         ? Color(log.categories[entry.categoryIndex].color)
                         : Colors.grey.shade200;
 
