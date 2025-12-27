@@ -4,6 +4,7 @@ import '../providers/log_provider.dart';
 import '../widgets/log_card.dart';
 import 'log_detail_screen.dart';
 import 'log_editor_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -99,7 +100,12 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   IconButton(
                     onPressed: () {
-                      // Settings/Menu
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.more_horiz),
                   ),
