@@ -45,6 +45,9 @@ dependencies:
   # Date formatting
   intl: ^0.19.0
   
+  # Color picker
+  flutter_colorpicker: ^1.1.0
+  
   # File system access
   path_provider: ^2.1.2
   

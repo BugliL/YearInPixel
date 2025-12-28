@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../models/log.dart';
 import '../models/day_entry.dart';
 import '../models/log_category.dart';
@@ -502,36 +503,101 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  0xFF4CAF50, // Green (5 stars)
-                  0xFF8BC34A, // Light Green (4 stars)
-                  0xFFFFEB3B, // Yellow (3 stars)
-                  0xFFFF9800, // Orange (2 stars)
-                  0xFFF44336, // Red (1 star)
-                  0xFF2196F3, // Blue
-                  0xFF9C27B0, // Purple
-                  0xFFE91E63, // Pink
-                  0xFF795548, // Brown
-                  0xFF607D8B, // Blue Grey
-                ].map((colorValue) {
-                  return GestureDetector(
-                    onTap: () {
-                      setDialogState(() {
-                        selectedColor = Color(colorValue);
-                      });
+                  ...[
+                    0xFF4CAF50, // Green (5 stars)
+                    0xFF8BC34A, // Light Green (4 stars)
+                    0xFFFFEB3B, // Yellow (3 stars)
+                    0xFFFF9800, // Orange (2 stars)
+                    0xFFF44336, // Red (1 star)
+                    0xFF2196F3, // Blue
+                    0xFF9C27B0, // Purple
+                    0xFFE91E63, // Pink
+                    0xFF795548, // Brown
+                    0xFF607D8B, // Blue Grey
+                  ].map((colorValue) {
+                    return GestureDetector(
+                      onTap: () {
+                        setDialogState(() {
+                          selectedColor = Color(colorValue);
+                        });
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Color(colorValue),
+                          shape: BoxShape.circle,
+                          border: selectedColor.toARGB32() == colorValue
+                              ? Border.all(color: Colors.black, width: 3)
+                              : null,
+                        ),
+                      ),
+                    );
+                  }),
+                  // Custom color picker button - shows selected custom color or + icon
+                  GestureDetector(
+                    onTap: () async {
+                      Color pickerColor = selectedColor;
+                      
+                      await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Pick a Color'),
+                            content: SingleChildScrollView(
+                              child: ColorPicker(
+                                pickerColor: pickerColor,
+                                onColorChanged: (Color color) {
+                                  pickerColor = color;
+                                },
+                                colorPickerWidth: 300,
+                                pickerAreaHeightPercent: 0.7,
+                                displayThumbColor: true,
+                                paletteType: PaletteType.hsvWithHue,
+                                labelTypes: const [],
+                                pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(8)),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    selectedColor = pickerColor;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Select'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     child: Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Color(colorValue),
+                        color: _isPresetColor(selectedColor) 
+                            ? Colors.white 
+                            : selectedColor,
                         shape: BoxShape.circle,
-                        border: selectedColor.toARGB32() == colorValue
-                            ? Border.all(color: Colors.black, width: 3)
-                            : null,
+                        border: Border.all(
+                          color: _isPresetColor(selectedColor) 
+                              ? Colors.grey 
+                              : Colors.black,
+                          width: _isPresetColor(selectedColor) ? 2 : 3,
+                        ),
                       ),
+                      child: _isPresetColor(selectedColor)
+                          ? const Icon(Icons.add, color: Colors.grey, size: 24)
+                          : null,
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -818,5 +884,21 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
       30, // Nov
       31, // Dec
     ];
+  }
+
+  bool _isPresetColor(Color color) {
+    final presetColors = [
+      0xFF4CAF50, // Green
+      0xFF8BC34A, // Light Green
+      0xFFFFEB3B, // Yellow
+      0xFFFF9800, // Orange
+      0xFFF44336, // Red
+      0xFF2196F3, // Blue
+      0xFF9C27B0, // Purple
+      0xFFE91E63, // Pink
+      0xFF795548, // Brown
+      0xFF607D8B, // Blue Grey
+    ];
+    return presetColors.contains(color.toARGB32());
   }
 }
