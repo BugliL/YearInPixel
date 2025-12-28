@@ -125,20 +125,17 @@ class LogCard extends StatelessWidget {
   }
 
   Widget _buildColorLegend() {
-    // Show only first few categories in mini view
-    final displayCategories = log.categories.take(3).toList();
-
-    return Row(
-      children: displayCategories.map((category) {
-        return Padding(
-          padding: const EdgeInsets.only(right: 4),
-          child: Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Color(category.color),
-              borderRadius: BorderRadius.circular(2),
-            ),
+    // Show all categories with wrapping support
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: log.categories.map((category) {
+        return Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: Color(category.color),
+            borderRadius: BorderRadius.circular(3),
           ),
         );
       }).toList(),
