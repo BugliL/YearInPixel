@@ -116,23 +116,26 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Month headers
-            Padding(
-              padding: const EdgeInsets.only(left: 24),
-              child: Row(
-                children: months.map((month) {
-                  return Expanded(
-                    child: Center(
-                      child: Text(
-                        month,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+            Row(
+              children: [
+                // Space for day numbers
+                const SizedBox(width: 24),
+                const SizedBox(width: 4),
+                // Month headers aligned with grid
+                ...months.map((month) {
+                  return Container(
+                    width: 20, // 18px cell + 2px horizontal padding (1px on each side)
+                    alignment: Alignment.center,
+                    child: Text(
+                      month,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   );
                 }).toList(),
-              ),
+              ],
             ),
             const SizedBox(height: 8),
             // Day rows
@@ -164,7 +167,10 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           // Day cells for each month
           ...List.generate(12, (monthIndex) {
             if (day > daysInMonth[monthIndex]) {
-              return const SizedBox(width: 18, height: 18);
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 1),
+                child: SizedBox(width: 18, height: 18),
+              );
             }
 
             final date = DateTime(year, monthIndex + 1, day);
