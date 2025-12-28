@@ -16,15 +16,45 @@ class LogEditorScreen extends StatefulWidget {
 
 class _LogEditorScreenState extends State<LogEditorScreen> {
   late TextEditingController _nameController;
-  late TextEditingController _emojiController;
+  String _selectedEmoji = '';
   final List<LogCategory> _categories = [];
   String? _selectedTemplateId;
+
+  // Curated emojis for meaningful tracking
+  static const List<String> _availableEmojis = [
+    // Emotions & Moods
+    '😊', '😢', '😡', '😰', '😴', '🤔', '😍', '😐', '🥳', '😞', '🤗', '😎',
+    // Activities & Work
+    '💼', '💻', '📚', '✍️', '🎨', '🎵', '🎮', '📺', '🎓', '📊', '💡',
+    // Exercise & Sports
+    '🏃', '🚴', '🧘', '💪', '🏊', '⚽', '🏀', '🎾', '⛳',
+    // Health & Wellness
+    '❤️', '🤒', '💊', '🩺', '🧠', '💚', '🩹', '😷',
+    // Food & Drink
+    '🍎', '🥗', '🍕', '☕', '🍰', '🍔', '🥤', '🍝', '🍜', '🥘',
+    // Weather
+    '☀️', '⛅', '🌧️', '⛈️', '🌈', '❄️', '🌤️',
+    // Social & People
+    '👥', '💬', '📱', '👪', '💑', '🎉', '🎈', '🎁',
+    // Nature & Outdoors
+    '🌳', '🌸', '🌺', '🌿', '🐕', '🐱', '🦋', '🌄',
+    // Travel & Places
+    '✈️', '🚗', '🏠', '🏖️', '🗺️', '🚂', '🏨', '⛺',
+    // Achievement & Goals
+    '⭐', '🏆', '🎯', '✅', '💯', '🔥', '🌟',
+    // Money & Shopping
+    '💰', '💸', '💳', '🛍️',
+    // Time & Schedule
+    '⏰', '🌅', '🌙', '⏱️', '📅',
+    // Misc Useful
+    '📷', '💤', '🔔', '📧', '🎬', '🎭', '📖', '🎪',
+  ];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.log?.name ?? '');
-    _emojiController = TextEditingController(text: widget.log?.emoji ?? '');
+    _selectedEmoji = widget.log?.emoji ?? '😀';
     if (widget.log != null) {
       _categories.addAll(widget.log!.categories);
     } else {
@@ -39,7 +69,6 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emojiController.dispose();
     super.dispose();
   }
 
@@ -121,27 +150,42 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
                 ),
               ),
             if (widget.log == null) const SizedBox(height: 16),
-            // Name field
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Log Name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // Name and Emoji field in a row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Emoji picker button
+                InkWell(
+                  onTap: _showEmojiPicker,
+                  child: Container(
+                    width: 60,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _selectedEmoji,
+                        style: const TextStyle(fontSize: 32),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Emoji field
-            TextField(
-              controller: _emojiController,
-              decoration: InputDecoration(
-                labelText: 'Emoji',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 12),
+                // Name field
+                Expanded(
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Log Name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              maxLength: 2,
+              ],
             ),
             const SizedBox(height: 24),
             // Categories section
@@ -319,6 +363,82 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
     );
   }
 
+  void _showEmojiPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Select an Emoji',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _availableEmojis.length,
+                  itemBuilder: (context, index) {
+                    final emoji = _availableEmojis[index];
+                    final isSelected = emoji == _selectedEmoji;
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedEmoji = emoji;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF98D8C8).withOpacity(0.3)
+                              : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                          border: isSelected
+                              ? Border.all(
+                                  color: const Color(0xFF98D8C8),
+                                  width: 2,
+                                )
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 28),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _saveLog() {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -336,13 +456,13 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
 
     final log = widget.log?.copyWith(
           name: _nameController.text,
-          emoji: _emojiController.text,
+          emoji: _selectedEmoji,
           categories: _categories,
         ) ??
         Log(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: _nameController.text,
-          emoji: _emojiController.text,
+          emoji: _selectedEmoji,
           categories: _categories,
         );
 
@@ -359,7 +479,7 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   void _loadTemplate(LogTemplate template) {
     setState(() {
       _nameController.text = template.name;
-      _emojiController.text = template.emoji;
+      _selectedEmoji = template.emoji;
       _categories.clear();
       _categories.addAll(
         template.categories
