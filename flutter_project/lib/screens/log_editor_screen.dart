@@ -4,6 +4,7 @@ import '../models/log.dart';
 import '../models/log_category.dart';
 import '../providers/log_provider.dart';
 import '../services/log_templates.dart';
+import '../widgets/category_editor_dialog.dart';
 
 class LogEditorScreen extends StatefulWidget {
   final Log? log;
@@ -277,90 +278,25 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
     );
   }
 
-  void _editCategory(int? index, LogCategory category) {
-    final nameController = TextEditingController(text: category.label);
-    Color selectedColor = Color(category.color);
-
-    showDialog(
+  void _editCategory(int? index, LogCategory category) async {
+    final result = await showDialog<dynamic>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(index == null ? 'Add Category' : 'Edit Category'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Category Name',
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text('Select Color:'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  0xFFF44336, // Red
-                  0xFFFF9800, // Orange
-                  0xFFFFEB3B, // Yellow
-                  0xFF4CAF50, // Green
-                  0xFF2196F3, // Blue
-                  0xFF9C27B0, // Purple
-                  0xFFE91E63, // Pink
-                  0xFF795548, // Brown
-                ].map((colorValue) {
-                  return GestureDetector(
-                    onTap: () {
-                      setDialogState(() {
-                        selectedColor = Color(colorValue);
-                      });
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Color(colorValue),
-                        shape: BoxShape.circle,
-                        border: selectedColor.value == colorValue
-                            ? Border.all(color: Colors.black, width: 3)
-                            : null,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newCategory = LogCategory(
-                  label: nameController.text,
-                  color: selectedColor.value,
-                );
-
-                setState(() {
-                  if (index == null) {
-                    _categories.add(newCategory);
-                  } else {
-                    _categories[index] = newCategory;
-                  }
-                });
-
-                Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+      builder: (context) => CategoryEditorDialog(
+        category: category,
+        isNew: index == null,
+        showDelete: false,
       ),
     );
+
+    if (result is LogCategory) {
+      setState(() {
+        if (index == null) {
+          _categories.add(result);
+        } else {
+          _categories[index] = result;
+        }
+      });
+    }
   }
 
   void _showEmojiPicker() {

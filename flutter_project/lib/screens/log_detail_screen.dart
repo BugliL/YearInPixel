@@ -6,6 +6,7 @@ import '../models/day_entry.dart';
 import '../models/log_category.dart';
 import '../providers/log_provider.dart';
 import '../widgets/day_entry_dialog.dart';
+import '../widgets/category_editor_dialog.dart';
 
 class LogDetailScreen extends StatefulWidget {
   final Log log;
@@ -478,169 +479,28 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     }
   }
 
-  void _editCategory(int? index, LogCategory category) {
-    final nameController = TextEditingController(text: category.label);
-    Color selectedColor = Color(category.color);
-
-    showDialog(
+  void _editCategory(int? index, LogCategory category) async {
+    final result = await showDialog<dynamic>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(index == null ? 'Add Category' : 'Edit Category'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Category Name',
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text('Select Color:', style: TextStyle(fontSize: 16)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ...[
-                    0xFF4CAF50, // Green (5 stars)
-                    0xFF8BC34A, // Light Green (4 stars)
-                    0xFFFFEB3B, // Yellow (3 stars)
-                    0xFFFF9800, // Orange (2 stars)
-                    0xFFF44336, // Red (1 star)
-                    0xFF2196F3, // Blue
-                    0xFF9C27B0, // Purple
-                    0xFFE91E63, // Pink
-                    0xFF795548, // Brown
-                    0xFF607D8B, // Blue Grey
-                  ].map((colorValue) {
-                    return GestureDetector(
-                      onTap: () {
-                        setDialogState(() {
-                          selectedColor = Color(colorValue);
-                        });
-                      },
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Color(colorValue),
-                          shape: BoxShape.circle,
-                          border: selectedColor.toARGB32() == colorValue
-                              ? Border.all(color: Colors.black, width: 3)
-                              : null,
-                        ),
-                      ),
-                    );
-                  }),
-                  // Custom color picker button - shows selected custom color or + icon
-                  GestureDetector(
-                    onTap: () async {
-                      Color pickerColor = selectedColor;
-                      
-                      await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Pick a Color'),
-                            content: SingleChildScrollView(
-                              child: ColorPicker(
-                                pickerColor: pickerColor,
-                                onColorChanged: (Color color) {
-                                  pickerColor = color;
-                                },
-                                colorPickerWidth: 300,
-                                pickerAreaHeightPercent: 0.7,
-                                displayThumbColor: true,
-                                paletteType: PaletteType.hsvWithHue,
-                                labelTypes: const [],
-                                pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(8)),
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setDialogState(() {
-                                    selectedColor = pickerColor;
-                                  });
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Select'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _isPresetColor(selectedColor) 
-                            ? Colors.white 
-                            : selectedColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: _isPresetColor(selectedColor) 
-                              ? Colors.grey 
-                              : Colors.black,
-                          width: _isPresetColor(selectedColor) ? 2 : 3,
-                        ),
-                      ),
-                      child: _isPresetColor(selectedColor)
-                          ? const Icon(Icons.add, color: Colors.grey, size: 24)
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            if (index != null)
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _handleCategoryDeletion(index);
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Delete'),
-              ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newCategory = LogCategory(
-                  label: nameController.text.isEmpty 
-                      ? category.label 
-                      : nameController.text,
-                  color: selectedColor.toARGB32(),
-                );
-
-                setState(() {
-                  if (index == null) {
-                    _log.categories.add(newCategory);
-                  } else {
-                    _log.categories[index] = newCategory;
-                  }
-                });
-
-                context.read<LogProvider>().updateLog(_log);
-                Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+      builder: (context) => CategoryEditorDialog(
+        category: category,
+        isNew: index == null,
+        showDelete: index != null,
       ),
     );
+
+    if (result == 'delete' && index != null) {
+      _handleCategoryDeletion(index);
+    } else if (result is LogCategory) {
+      setState(() {
+        if (index == null) {
+          _log.categories.add(result);
+        } else {
+          _log.categories[index] = result;
+        }
+      });
+      context.read<LogProvider>().updateLog(_log);
+    }
   }
 
   // Available emojis for the log
@@ -884,21 +744,5 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
       30, // Nov
       31, // Dec
     ];
-  }
-
-  bool _isPresetColor(Color color) {
-    final presetColors = [
-      0xFF4CAF50, // Green
-      0xFF8BC34A, // Light Green
-      0xFFFFEB3B, // Yellow
-      0xFFFF9800, // Orange
-      0xFFF44336, // Red
-      0xFF2196F3, // Blue
-      0xFF9C27B0, // Purple
-      0xFFE91E63, // Pink
-      0xFF795548, // Brown
-      0xFF607D8B, // Blue Grey
-    ];
-    return presetColors.contains(color.toARGB32());
   }
 }
