@@ -493,11 +493,10 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                 controller: nameController,
                 decoration: const InputDecoration(
                   labelText: 'Category Name',
-                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text('Select Color:'),
+              const SizedBox(height: 24),
+              const Text('Select Color:', style: TextStyle(fontSize: 16)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
