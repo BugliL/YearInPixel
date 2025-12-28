@@ -5,6 +5,7 @@ import '../models/log_category.dart';
 import '../providers/log_provider.dart';
 import '../services/log_templates.dart';
 import '../widgets/category_editor_dialog.dart';
+import '../widgets/emoji_picker_dialog.dart';
 
 class LogEditorScreen extends StatefulWidget {
   final Log? log;
@@ -20,36 +21,6 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   String _selectedEmoji = '';
   final List<LogCategory> _categories = [];
   String? _selectedTemplateId;
-
-  // Curated emojis for meaningful tracking
-  static const List<String> _availableEmojis = [
-    // Emotions & Moods
-    '😊', '😢', '😡', '😰', '😴', '🤔', '😍', '😐', '🥳', '😞', '🤗', '😎',
-    // Activities & Work
-    '💼', '💻', '📚', '✍️', '🎨', '🎵', '🎮', '📺', '🎓', '📊', '💡',
-    // Exercise & Sports
-    '🏃', '🚴', '🧘', '💪', '🏊', '⚽', '🏀', '🎾', '⛳',
-    // Health & Wellness
-    '❤️', '🤒', '💊', '🩺', '🧠', '💚', '🩹', '😷', '🛁', '🪥', 
-    // Food & Drink
-    '🍎', '🥗', '🍕', '☕', '🍰', '🍔', '🥤', '🍝', '🍜', '🥘',
-    // Weather
-    '☀️', '⛅', '🌧️', '⛈️', '🌈', '❄️', '🌤️',
-    // Social & People
-    '👥', '💬', '📱', '👪', '💑', '🎉', '🎈', '🎁',
-    // Nature & Outdoors
-    '🌳', '🌸', '🌺', '🌿', '🐕', '🐱', '🦋', '🌄',
-    // Travel & Places
-    '✈️', '🚗', '🏠', '🏖️', '🗺️', '🚂', '🏨', '⛺',
-    // Achievement & Goals
-    '⭐', '🏆', '🎯', '✅', '💯', '🔥', '🌟',
-    // Money & Shopping
-    '💰', '💸', '💳', '🛍️',
-    // Time & Schedule
-    '⏰', '🌅', '🌙', '⏱️', '📅',
-    // Misc Useful
-    '📷', '💤', '🛌', '🔔', '📧', '🎬', '🎭', '📖', '🎪',
-  ];
 
   @override
   void initState() {
@@ -299,80 +270,19 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
     }
   }
 
-  void _showEmojiPicker() {
-    showDialog(
+  void _showEmojiPicker() async {
+    final result = await showDialog<String>(
       context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Select an Emoji',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemCount: _availableEmojis.length,
-                  itemBuilder: (context, index) {
-                    final emoji = _availableEmojis[index];
-                    final isSelected = emoji == _selectedEmoji;
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedEmoji = emoji;
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF98D8C8).withOpacity(0.3)
-                              : Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                          border: isSelected
-                              ? Border.all(
-                                  color: const Color(0xFF98D8C8),
-                                  width: 2,
-                                )
-                              : null,
-                        ),
-                        child: Center(
-                          child: Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 28),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => EmojiPickerDialog(
+        currentEmoji: _selectedEmoji,
       ),
     );
+
+    if (result != null) {
+      setState(() {
+        _selectedEmoji = result;
+      });
+    }
   }
 
   void _saveLog() {

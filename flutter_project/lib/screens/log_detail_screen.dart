@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../models/log.dart';
 import '../models/day_entry.dart';
 import '../models/log_category.dart';
 import '../providers/log_provider.dart';
 import '../widgets/day_entry_dialog.dart';
 import '../widgets/category_editor_dialog.dart';
+import '../widgets/emoji_picker_dialog.dart';
 
 class LogDetailScreen extends StatefulWidget {
   final Log log;
@@ -503,36 +503,6 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     }
   }
 
-  // Available emojis for the log
-  static const List<String> _availableEmojis = [
-    // Emotions & Moods
-    '😊', '😢', '😡', '😰', '😴', '🤔', '😍', '😐', '🥳', '😞', '🤗', '😎',
-    // Activities & Work
-    '💼', '💻', '📚', '✍️', '🎨', '🎵', '🎮', '📺', '🎓', '📊', '💡',
-    // Exercise & Sports
-    '🏃', '🚴', '🧘', '💪', '🏊', '⚽', '🏀', '🎾', '⛳',
-    // Health & Wellness
-    '❤️', '🤒', '💊', '🩺', '🧠', '💚', '🩹', '😷',
-    // Food & Drink
-    '🍎', '🥗', '🍕', '☕', '🍰', '🍔', '🥤', '🍝', '🍜', '🥘',
-    // Weather
-    '☀️', '⛅', '🌧️', '⛈️', '🌈', '❄️', '🌤️',
-    // Social & People
-    '👥', '💬', '📱', '👪', '💑', '🎉', '🎈', '🎁',
-    // Nature & Outdoors
-    '🌳', '🌸', '🌺', '🌿', '🐕', '🐱', '🦋', '🌄',
-    // Travel & Places
-    '✈️', '🚗', '🏠', '🏖️', '🗺️', '🚂', '🏨', '⛺',
-    // Achievement & Goals
-    '⭐', '🏆', '🎯', '✅', '💯', '🔥', '🌟',
-    // Money & Shopping
-    '💰', '💸', '💳', '🛍️',
-    // Time & Schedule
-    '⏰', '🌅', '🌙', '⏱️', '📅',
-    // Misc Useful
-    '📷', '💤', '🔔', '📧', '🎬', '🎭', '📖', '🎪',
-  ];
-
   void _editLogNameAndEmoji() {
     final nameController = TextEditingController(text: _log.name);
     String selectedEmoji = _log.emoji;
@@ -586,9 +556,9 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                                           crossAxisSpacing: 8,
                                           mainAxisSpacing: 8,
                                         ),
-                                        itemCount: _availableEmojis.length,
+                                        itemCount: EmojiPickerDialog.availableEmojis.length,
                                         itemBuilder: (context, index) {
-                                          final emoji = _availableEmojis[index];
+                                          final emoji = EmojiPickerDialog.availableEmojis[index];
                                           final isSelected = emoji == selectedEmoji;
                                           return InkWell(
                                             onTap: () {
@@ -600,7 +570,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 color: isSelected
-                                                    ? const Color(0xFF98D8C8).withOpacity(0.3)
+                                                    ? const Color(0xFF98D8C8).withValues(alpha: 0.3)
                                                     : Colors.grey.shade100,
                                                 borderRadius: BorderRadius.circular(8),
                                                 border: isSelected
