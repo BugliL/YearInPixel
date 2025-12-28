@@ -36,37 +36,57 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${_log.emoji} ${_log.name}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit, size: 18),
-              onPressed: _editLogNameAndEmoji,
-              tooltip: 'Edit name and emoji',
-            ),
-          ],
+        title: Text(
+          '${_log.emoji} ${_log.name}',
+          style: const TextStyle(fontSize: 18),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {},
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_horiz),
             onSelected: (value) {
               if (value == 'delete') {
                 _showDeleteConfirmation();
+              } else if (value == 'refresh') {
+                // Refresh action
+              } else if (value == 'stats') {
+                // Statistics action
+              } else if (value == 'edit') {
+                _editLogNameAndEmoji();
               }
             },
             itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit),
+                    SizedBox(width: 8),
+                    Text('Edit Log'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 8),
+                    Text('Refresh'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'stats',
+                child: Row(
+                  children: [
+                    Icon(Icons.bar_chart),
+                    SizedBox(width: 8),
+                    Text('Statistics'),
+                  ],
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'delete',
                 child: Row(
@@ -109,47 +129,62 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
     final daysInMonth = _getDaysInMonth(year);
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Month headers
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available width and cell size
+        const dayNumberWidth = 24.0;
+        const dayNumberSpacing = 4.0;
+        const horizontalPadding = 32.0; // 16px on each side
+        final availableWidth = constraints.maxWidth - dayNumberWidth - dayNumberSpacing - horizontalPadding;
+        
+        // Calculate cell width (including padding) to fit 12 months
+        final cellTotalWidth = availableWidth / 12;
+        final cellWidth = cellTotalWidth - 2; // Subtract horizontal padding (1px each side)
+        final cellHeight = cellWidth.clamp(12.0, 24.0); // Constrain height between 12-24px
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Space for day numbers
-                const SizedBox(width: 24),
-                const SizedBox(width: 4),
-                // Month headers aligned with grid
-                ...months.map((month) {
-                  return Container(
-                    width: 20, // 18px cell + 2px horizontal padding (1px on each side)
-                    alignment: Alignment.center,
-                    child: Text(
-                      month,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  );
-                }).toList(),
+                // Month headers
+                Row(
+                  children: [
+                    // Space for day numbers
+                    const SizedBox(width: dayNumberWidth),
+                    const SizedBox(width: dayNumberSpacing),
+                    // Month headers aligned with grid
+                    ...months.map((month) {
+                      return Container(
+                        width: cellTotalWidth,
+                        alignment: Alignment.center,
+                        child: Text(
+                          month,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Day rows
+                ...List.generate(31, (dayIndex) {
+                  final day = dayIndex + 1;
+                  return _buildDayRow(day, daysInMonth, year, cellWidth, cellHeight);
+                }),
               ],
             ),
-            const SizedBox(height: 8),
-            // Day rows
-            ...List.generate(31, (dayIndex) {
-              final day = dayIndex + 1;
-              return _buildDayRow(day, daysInMonth, year);
-            }),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildDayRow(int day, List<int> daysInMonth, int year) {
+  Widget _buildDayRow(int day, List<int> daysInMonth, int year, double cellWidth, double cellHeight) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Row(
@@ -167,9 +202,9 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           // Day cells for each month
           ...List.generate(12, (monthIndex) {
             if (day > daysInMonth[monthIndex]) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 1),
-                child: SizedBox(width: 18, height: 18),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 1),
+                child: SizedBox(width: cellWidth, height: cellHeight),
               );
             }
 
@@ -186,8 +221,8 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                   }
                 },
                 child: Container(
-                  width: 18,
-                  height: 18,
+                  width: cellWidth,
+                  height: cellHeight,
                   decoration: BoxDecoration(
                     color: entry != null
                         ? Color(_log.categories[entry.categoryIndex].color)
