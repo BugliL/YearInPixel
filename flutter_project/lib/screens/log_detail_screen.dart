@@ -197,7 +197,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
       width: 80,
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ..._log.categories.asMap().entries.map((entry) {
             final index = entry.key;
@@ -207,6 +207,8 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
               child: GestureDetector(
                 onTap: () => _editCategory(index, category),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 20,
