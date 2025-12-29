@@ -54,6 +54,25 @@ class _DayEntryDialogState extends State<DayEntryDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Log info header (emoji and title)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  widget.log.emoji,
+                  style: const TextStyle(fontSize: 32),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.log.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             // Date header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -5,6 +5,7 @@ import '../widgets/log_card.dart';
 import 'log_detail_screen.dart';
 import 'log_editor_screen.dart';
 import 'settings_screen.dart';
+import 'all_logs_grid_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -164,6 +165,18 @@ class HomeScreen extends StatelessWidget {
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.home),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AllLogsGridScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.grid_view),
+                tooltip: 'All Logs Grid',
               ),
               IconButton(
                 onPressed: () {
