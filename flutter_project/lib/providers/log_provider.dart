@@ -51,19 +51,23 @@ class LogProvider extends ChangeNotifier {
   }
 
   Future<void> reorderLogs(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
+    // Remove item from old position and insert at new position
+    // Note: reorderable_grid_view already handles the index adjustment
     final log = _logs.removeAt(oldIndex);
     _logs.insert(newIndex, log);
     
-    // Update sortOrder for all logs
+    // Update sortOrder for all logs to match their current position
     for (int i = 0; i < _logs.length; i++) {
       _logs[i].sortOrder = i;
-      await _logBox.put(_logs[i].id, _logs[i]);
     }
     
-    notifyListeners();
+    // Save all logs to Hive in one batch
+    for (var log in _logs) {
+      await _logBox.put(log.id, log);
+    }
+    
+    // Reload to ensure consistency
+    await loadLogs();
   }
 
   // Export all logs to a file
