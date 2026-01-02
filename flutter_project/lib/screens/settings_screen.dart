@@ -259,6 +259,7 @@ class SettingsScreen extends StatelessWidget {
     // Show import options dialog
     final replaceExisting = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Import Logs'),
         content: const Text(
@@ -330,6 +331,7 @@ class SettingsScreen extends StatelessWidget {
   }) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Row(
           children: [

@@ -252,6 +252,7 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   void _editCategory(int? index, LogCategory category) async {
     final result = await showDialog<dynamic>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => CategoryEditorDialog(
         category: category,
         isNew: index == null,
@@ -338,6 +339,7 @@ class _LogEditorScreenState extends State<LogEditorScreen> {
   void _deleteLog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Delete Log'),
         content: const Text('Are you sure you want to delete this log?'),

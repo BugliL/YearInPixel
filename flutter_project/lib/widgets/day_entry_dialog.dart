@@ -85,6 +85,7 @@ class _DayEntryDialogState extends State<DayEntryDialog> {
                     Future.delayed(const Duration(milliseconds: 100), () {
                       showDialog(
                         context: context,
+                        barrierDismissible: false,
                         builder: (_) => DayEntryDialog(
                           date: previousDate,
                           log: widget.log,
@@ -110,6 +111,7 @@ class _DayEntryDialogState extends State<DayEntryDialog> {
                     Future.delayed(const Duration(milliseconds: 100), () {
                       showDialog(
                         context: context,
+                        barrierDismissible: false,
                         builder: (_) => DayEntryDialog(
                           date: nextDate,
                           log: widget.log,

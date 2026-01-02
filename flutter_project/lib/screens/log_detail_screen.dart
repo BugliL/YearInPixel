@@ -291,6 +291,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
   void _handleDayTap(DateTime date, DayEntry? existingEntry) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => DayEntryDialog(
         date: date,
         log: _log,
@@ -363,8 +364,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     // Category is in use - show dialog with options
     if (!mounted) return;
     final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: context,      barrierDismissible: false,      builder: (context) => AlertDialog(
         title: const Text('Category in Use'),
         content: Text(
           'This category is used by ${entriesUsingCategory.length} ${entriesUsingCategory.length == 1 ? "entry" : "entries"}. What would you like to do?',
@@ -415,6 +415,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
     await showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Reassign to Category'),
         content: Column(
@@ -482,6 +483,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
   void _editCategory(int? index, LogCategory category) async {
     final result = await showDialog<dynamic>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => CategoryEditorDialog(
         category: category,
         isNew: index == null,
@@ -509,6 +511,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
@@ -525,6 +528,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                         onTap: () {
                           showDialog(
                             context: context,
+                            barrierDismissible: false,
                             builder: (context) => Dialog(
                               child: Container(
                                 padding: const EdgeInsets.all(16),

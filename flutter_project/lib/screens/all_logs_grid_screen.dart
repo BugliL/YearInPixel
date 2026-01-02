@@ -304,6 +304,7 @@ class _AllLogsGridScreenState extends State<AllLogsGridScreen> {
   void _showDayDetails(DateTime date, Log log, dynamic entry) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => DayEntryDialog(
         date: date,
         log: log,

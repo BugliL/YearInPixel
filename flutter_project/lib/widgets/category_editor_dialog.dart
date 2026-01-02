@@ -57,6 +57,7 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
 
     await showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Pick a Color'),

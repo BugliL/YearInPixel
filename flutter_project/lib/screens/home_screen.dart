@@ -120,7 +120,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.50,
+            childAspectRatio: 1.2,
           ),
           itemCount: provider.logs.length,
           itemBuilder: (context, index) {
@@ -134,9 +134,43 @@ class HomeScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: LogCard(
-                log: log,
-                year: provider.selectedYear,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Emoji icon
+                    Text(
+                      log.emoji,
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                    const SizedBox(height: 12),
+                    // Log name
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        log.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
