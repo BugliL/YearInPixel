@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import '../providers/log_provider.dart';
 import '../widgets/log_card.dart';
 import 'log_detail_screen.dart';
@@ -7,9 +8,14 @@ import 'log_editor_screen.dart';
 import 'settings_screen.dart';
 import 'all_logs_grid_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,7 +120,7 @@ class HomeScreen extends StatelessWidget {
           );
         }
 
-        return GridView.builder(
+        return ReorderableGridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -123,59 +129,67 @@ class HomeScreen extends StatelessWidget {
             childAspectRatio: 1.2,
           ),
           itemCount: provider.logs.length,
+          onReorder: (oldIndex, newIndex) {
+            provider.reorderLogs(oldIndex, newIndex);
+          },
           itemBuilder: (context, index) {
             final log = provider.logs[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LogDetailScreen(log: log),
-                  ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Emoji icon
-                    Text(
-                      log.emoji,
-                      style: const TextStyle(fontSize: 48),
-                    ),
-                    const SizedBox(height: 12),
-                    // Log name
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        log.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return _buildLogCard(context, log, log.id);
           },
         );
       },
+    );
+  }
+
+  Widget _buildLogCard(BuildContext context, log, String key) {
+    return GestureDetector(
+      key: ValueKey(key),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LogDetailScreen(log: log),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Emoji icon
+            Text(
+              log.emoji,
+              style: const TextStyle(fontSize: 48),
+            ),
+            const SizedBox(height: 12),
+            // Log name
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                log.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

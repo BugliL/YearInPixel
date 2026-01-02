@@ -25,10 +25,12 @@ class LogProvider extends ChangeNotifier {
 
   Future<void> loadLogs() async {
     _logs = _logBox.values.toList();
+    _logs.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     notifyListeners();
   }
 
   Future<void> addLog(Log log) async {
+    log.sortOrder = _logs.length;
     await _logBox.put(log.id, log);
     await loadLogs();
   }
@@ -45,6 +47,22 @@ class LogProvider extends ChangeNotifier {
 
   void setSelectedYear(int year) {
     _selectedYear = year;
+    notifyListeners();
+  }
+
+  Future<void> reorderLogs(int oldIndex, int newIndex) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final log = _logs.removeAt(oldIndex);
+    _logs.insert(newIndex, log);
+    
+    // Update sortOrder for all logs
+    for (int i = 0; i < _logs.length; i++) {
+      _logs[i].sortOrder = i;
+      await _logBox.put(_logs[i].id, _logs[i]);
+    }
+    
     notifyListeners();
   }
 

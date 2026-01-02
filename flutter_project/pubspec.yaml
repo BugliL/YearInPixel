@@ -57,6 +57,9 @@ dependencies:
   # Share functionality
   share_plus: ^10.1.3
   universal_io: ^2.3.1
+  
+  # Reorderable grid view
+  reorderable_grid_view: ^2.2.8
 
 dev_dependencies:
   flutter_test:

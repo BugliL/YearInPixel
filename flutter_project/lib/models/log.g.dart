@@ -23,13 +23,14 @@ class LogAdapter extends TypeAdapter<Log> {
       categories: (fields[3] as List).cast<LogCategory>(),
       entries: (fields[4] as List?)?.cast<DayEntry>(),
       createdAt: fields[5] as DateTime?,
+      sortOrder: fields[6] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Log obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class LogAdapter extends TypeAdapter<Log> {
       ..writeByte(4)
       ..write(obj.entries)
       ..writeByte(5)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(6)
+      ..write(obj.sortOrder);
   }
 
   @override

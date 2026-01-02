@@ -24,6 +24,9 @@ class Log {
   @HiveField(5)
   final DateTime createdAt;
 
+  @HiveField(6)
+  int sortOrder;
+
   Log({
     required this.id,
     required this.name,
@@ -31,8 +34,10 @@ class Log {
     required this.categories,
     List<DayEntry>? entries,
     DateTime? createdAt,
+    int? sortOrder,
   })  : entries = entries ?? [],
-        createdAt = createdAt ?? DateTime.now();
+        createdAt = createdAt ?? DateTime.now(),
+        sortOrder = sortOrder ?? 0;
 
   // Get entry for a specific date
   DayEntry? getEntryForDate(DateTime date) {
