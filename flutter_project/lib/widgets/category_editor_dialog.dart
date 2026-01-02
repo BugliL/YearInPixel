@@ -73,6 +73,8 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
               paletteType: PaletteType.hsvWithHue,
               labelTypes: const [],
               pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(8)),
+              hexInputBar: true,
+              enableAlpha: false,
             ),
           ),
           actions: [
