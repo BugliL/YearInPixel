@@ -19,17 +19,46 @@ class LogDetailScreen extends StatefulWidget {
 
 class _LogDetailScreenState extends State<LogDetailScreen> {
   late Log _log;
+  late PageController _pageController;
+  late int _currentLogIndex;
 
   @override
   void initState() {
     super.initState();
     _log = widget.log;
+    final logs = context.read<LogProvider>().logs;
+    _currentLogIndex = logs.indexWhere((log) => log.id == _log.id);
+    _pageController = PageController(initialPage: _currentLogIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final year = context.watch<LogProvider>().selectedYear;
+    final logs = context.watch<LogProvider>().logs;
 
+    return PageView.builder(
+      controller: _pageController,
+      onPageChanged: (index) {
+        setState(() {
+          _currentLogIndex = index;
+          _log = logs[index];
+        });
+      },
+      itemCount: logs.length,
+      itemBuilder: (context, index) {
+        final currentLog = logs[index];
+        return _buildLogDetailScreen(context, currentLog, year);
+      },
+    );
+  }
+
+  Widget _buildLogDetailScreen(BuildContext context, Log currentLog, int year) {
     return Scaffold(
       backgroundColor: _getBackgroundColor(),
       appBar: AppBar(
@@ -39,7 +68,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          '${_log.emoji} ${_log.name}',
+          '${currentLog.emoji} ${currentLog.name}',
           style: const TextStyle(fontSize: 18),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
@@ -108,10 +137,10 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
           children: [
             // Main calendar grid
             Expanded(
-              child: _buildCalendarGrid(year),
+              child: _buildCalendarGrid(year, currentLog),
             ),
             // Color legend
-            _buildColorLegend(),
+            _buildColorLegend(currentLog),
           ],
         ),
       ),
@@ -120,14 +149,14 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
 
   Color _getBackgroundColor() {
     // Different background colors based on log type
-    if (_log.name.contains('rate')) return const Color(0xFFB8D4B8);
-    if (_log.name.contains('health')) return const Color(0xFFB8D4B8);
-    if (_log.name.contains('anxiety')) return const Color(0xFFB0D4E8);
-    if (_log.name.contains('period')) return const Color(0xFFF4C4C4);
+    if (_log.name.toLowerCase().contains('rate')) return const Color(0xFFB8D4B8);
+    if (_log.name.toLowerCase().contains('health')) return const Color(0xFFB8D4B8);
+    if (_log.name.toLowerCase().contains('anxiety')) return const Color(0xFFB0D4E8);
+    if (_log.name.toLowerCase().contains('period')) return const Color(0xFFF4C4C4);
     return const Color(0xFFE8D4E8);
   }
 
-  Widget _buildCalendarGrid(int year) {
+  Widget _buildCalendarGrid(int year, Log currentLog) {
     const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
     final daysInMonth = _getDaysInMonth(year);
 
@@ -176,7 +205,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                 // Day rows
                 ...List.generate(31, (dayIndex) {
                   final day = dayIndex + 1;
-                  return _buildDayRow(day, daysInMonth, year, cellWidth, cellHeight);
+                  return _buildDayRow(day, daysInMonth, year, cellWidth, cellHeight, currentLog);
                 }),
               ],
             ),
@@ -186,7 +215,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     );
   }
 
-  Widget _buildDayRow(int day, List<int> daysInMonth, int year, double cellWidth, double cellHeight) {
+  Widget _buildDayRow(int day, List<int> daysInMonth, int year, double cellWidth, double cellHeight, Log currentLog) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Row(
@@ -211,7 +240,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
             }
 
             final date = DateTime(year, monthIndex + 1, day);
-            final entry = _log.getEntryForDate(date);
+            final entry = currentLog.getEntryForDate(date);
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -227,7 +256,7 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
                   height: cellHeight,
                   decoration: BoxDecoration(
                     color: entry != null
-                        ? Color(_log.categories[entry.categoryIndex].color)
+                        ? Color(currentLog.categories[entry.categoryIndex].color)
                         : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2),
                   ),
@@ -240,14 +269,14 @@ class _LogDetailScreenState extends State<LogDetailScreen> {
     );
   }
 
-  Widget _buildColorLegend() {
+  Widget _buildColorLegend(Log currentLog) {
     return Container(
       width: 80,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ..._log.categories.asMap().entries.map((entry) {
+          ...currentLog.categories.asMap().entries.map((entry) {
             final index = entry.key;
             final category = entry.value;
             return Padding(
