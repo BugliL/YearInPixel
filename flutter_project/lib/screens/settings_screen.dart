@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/log_provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -30,6 +32,14 @@ class SettingsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _buildSection(
+              context,
+              title: 'Notifications',
+              children: [
+                _buildNotificationToggle(context),
+              ],
+            ),
+            const SizedBox(height: 24),
             _buildSection(
               context,
               title: 'Data Management',
@@ -353,4 +363,229 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildNotificationToggle(BuildContext context) {
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB6C1).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_active,
+                        color: Color(0xFFFFB6C1),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Daily Reminder',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Get notified for each log you haven\'t completed',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                value: settings.notificationsEnabled,
+                activeColor: const Color(0xFF98D8C8),
+                onChanged: (value) {
+                  settings.setNotificationsEnabled(value);
+                  
+                  if (value) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '✓ Daily reminder set for ${settings.formattedNotificationTime}',
+                        ),
+                        backgroundColor: const Color(0xFF98D8C8),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✓ Daily reminder disabled'),
+                        backgroundColor: Colors.black54,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+              ),
+              if (settings.notificationsEnabled) ...[
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF98D8C8).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.access_time,
+                      color: Color(0xFF98D8C8),
+                      size: 20,
+                    ),
+                  ),
+                  title: const Text(
+                    'Reminder Time',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    settings.formattedNotificationTime,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.black26,
+                  ),
+                  onTap: () => _showTimePicker(context, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFB6C1).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.bug_report,
+                      color: Color(0xFFFFB6C1),
+                      size: 20,
+                    ),
+                  ),
+                  title: const Text(
+                    'Test Notification',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Send a test notification in 5 seconds',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  onTap: () => _testNotification(context),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _testNotification(BuildContext context) async {
+    final notificationService = NotificationService();
+    await notificationService.testNotificationNow();
+    
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Test notification scheduled in 5 seconds. Close the app to test!'),
+          backgroundColor: Color(0xFF98D8C8),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showTimePicker(BuildContext context, SettingsProvider settings) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: settings.notificationHour,
+        minute: settings.notificationMinute,
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFB388EB), // Purple
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: Colors.white,
+              dialBackgroundColor: const Color(0xFFB388EB).withOpacity(0.15),
+              hourMinuteTextColor: const Color(0xFFB388EB),
+              dayPeriodTextColor: const Color(0xFFB388EB),
+              dialHandColor: const Color(0xFFB388EB),
+              hourMinuteColor: const Color(0xFFB388EB).withOpacity(0.1),
+              dayPeriodBorderSide: const BorderSide(color: Color(0xFFB388EB)),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null && context.mounted) {
+      await settings.setNotificationTime(pickedTime.hour, pickedTime.minute);
+      
+      final timeString = '${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ Reminder time updated to $timeString'),
+            backgroundColor: const Color(0xFF98D8C8),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
 }
+

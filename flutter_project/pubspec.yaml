@@ -60,6 +60,12 @@ dependencies:
   
   # Reorderable grid view
   reorderable_grid_view: ^2.2.8
+  
+  # Notifications and background tasks
+  flutter_local_notifications: ^18.0.1
+  workmanager: ^0.6.0
+  timezone: ^0.9.4
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:
